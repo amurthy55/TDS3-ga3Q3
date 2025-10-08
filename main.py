@@ -33,6 +33,11 @@ def run_agent(task: str) -> str:
     except Exception as e:
         return f"Error during task: {e}"
 
+# --- Root route for Railway health check ---
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "FastAPI agent server running"}
+
 @app.get("/task")
 async def handle_task(q: str = Query(..., description="Task description")):
     output = run_agent(q)

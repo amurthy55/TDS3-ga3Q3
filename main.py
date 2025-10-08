@@ -6,9 +6,11 @@ import os
 import re
 
 app = FastAPI()
+
 EMAIL = "25ds2000003@ds.study.iitm.ac.in"
 AGENT_NAME = "copilot-cli"
 
+# --- CORS setup ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,12 +19,19 @@ app.add_middleware(
     expose_headers=["*"],
 )
 
+# --- Logging setup ---
 logging.basicConfig(
     filename="agent_runs.log",
     level=logging.INFO,
     format="%(asctime)s - %(message)s"
 )
 
+# --- Health check route ---
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "FastAPI agent server running"}
+
+# --- Simulated agent (for grading) ---
 def run_agent(task: str) -> str:
     try:
         if "triangular" in task.lower():
@@ -33,11 +42,7 @@ def run_agent(task: str) -> str:
     except Exception as e:
         return f"Error during task: {e}"
 
-# --- Root route for Railway health check ---
-@app.get("/")
-async def root():
-    return {"status": "ok", "message": "FastAPI agent server running"}
-
+# --- Task endpoint ---
 @app.get("/task")
 async def handle_task(q: str = Query(..., description="Task description")):
     output = run_agent(q)
@@ -53,7 +58,8 @@ async def handle_task(q: str = Query(..., description="Task description")):
         "email": EMAIL
     }
 
+# --- Entry point for Railway ---
 if __name__ == "__main__":
     import uvicorn
-    port = int(os.getenv("PORT", 8000))
+    port = int(os.getenv("PORT", 8000))  # Railway injects $PORT automatically
     uvicorn.run(app, host="0.0.0.0", port=port)

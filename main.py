@@ -47,7 +47,10 @@ def run_agent(task: str) -> str:
 
 @app.get("/task")
 async def handle_task(q: str = Query(..., description="Task description")):
-    output = run_agent(q)
+    # output = run_agent(q)
+
+    output = subprocess.run(["copilot-cli", "--task", q], capture_output=True, text=True, timeout=30)
+    # return result.stdout.strip()
     
     # Log the run
     logging.info(json.dumps({"task": q, "agent": AGENT_NAME, "output": output}))
@@ -55,6 +58,7 @@ async def handle_task(q: str = Query(..., description="Task description")):
     return {
         "task": q,
         "agent": AGENT_NAME,
-        "output": output,
+        # "output": output,
+        "output":output.stdout.strip(),
         "email": EMAIL
     }
